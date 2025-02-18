@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import TodosRemaining from './TodosRemaining';
 
 function TodoList(props) {
+  const [filter, setFilter] = useState('all');
+  const [filteredTodos, setFilteredTodos] = useState(props.todos);
+
   function completeTodo(id) {
     const updatedTodos = props.todos.map((todo) => {
       if (todo.id === id) {
@@ -60,10 +64,48 @@ function TodoList(props) {
     props.setTodos(updatedTodos);
   }
 
+  function remaining() {
+    return props.todos.filter((todo) => !todo.isComplete).length;
+  }
+
+  function checkAll() {
+    const updatedTodos = props.todos.map((todo) => {
+      todo.isComplete = true;
+
+      return todo;
+    });
+
+    props.setTodos(updatedTodos);
+  }
+
+  function clearCompleted() {
+    const updatedTodos = props.todos.filter((todo) => !todo.isComplete);
+
+    props.setTodos(updatedTodos);
+  }
+
+  function getFiltered() {
+    let updatedTodos = [];
+
+    if (filter === 'all') {
+      updatedTodos = props.todos;
+    } else if (filter === 'completed') {
+      updatedTodos = props.todos.filter((todo) => todo.isComplete);
+    } else if (filter === 'active') {
+      updatedTodos = props.todos.filter((todo) => !todo.isComplete);
+    }
+
+    return updatedTodos;
+  }
+
+  function changeFilter(value) {
+    setFilter(value);
+  }
+
   return (
     <>
       <ul className="todo-list">
-        {props.todos.map((todo, index) => (
+        {getFiltered().map((todo, index) => (
           <li key={todo.id} className="todo-item-container">
             <div className="todo-item">
               <input
@@ -119,22 +161,45 @@ function TodoList(props) {
 
       <div className="check-all-container">
         <div>
-          <div className="button">Check All</div>
+          <div className="button" onClick={() => checkAll()}>
+            Check All
+          </div>
         </div>
 
-        <span>3 items remaining</span>
+        <TodosRemaining todosRemaining={remaining()}></TodosRemaining>
       </div>
 
       <div className="other-buttons-container">
         <div>
-          <button className="button filter-button filter-button-active">
+          <button
+            className={`button filter-button + ${
+              filter === 'all' ? 'filter-button-active' : ''
+            }`}
+            onClick={() => changeFilter('all')}
+          >
             All
           </button>
-          <button className="button filter-button">Active</button>
-          <button className="button filter-button">Completed</button>
+          <button
+            className={`button filter-button + ${
+              filter === 'active' ? 'filter-button-active' : ''
+            }`}
+            onClick={() => changeFilter('active')}
+          >
+            Active
+          </button>
+          <button
+            className={`button filter-button + ${
+              filter === 'completed' ? 'filter-button-active' : ''
+            }`}
+            onClick={() => changeFilter('completed')}
+          >
+            Completed
+          </button>
         </div>
         <div>
-          <button className="button">Clear completed</button>
+          <button className="button" onClick={() => clearCompleted()}>
+            Clear completed
+          </button>
         </div>
       </div>
     </>
